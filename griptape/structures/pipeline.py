@@ -1,7 +1,6 @@
 from __future__ import annotations
-import json
 from typing import TYPE_CHECKING, Optional
-from attr import define
+from attr import define, field
 from griptape.artifacts import ErrorArtifact
 from griptape.memory.structure import Run
 from griptape.structures import StructureWithMemory
@@ -13,18 +12,15 @@ if TYPE_CHECKING:
 
 @define
 class Pipeline(StructureWithMemory):
-    def __attrs_post_init__(self) -> None:
-        super().__attrs_post_init__()
+    input_task: BaseTask = field(default=None, kw_only=True)
+    output_task: BaseTask = field(default=None, kw_only=True)
 
-        self.input_task = None
-        self.output_task = None
-
-    def input_task(self) -> Optional[BaseTask]:
+    def get_input_task(self) -> Optional[BaseTask]:
         if self.input_task:
             return self.input_task
         return self.first_task()
 
-    def output_task(self) -> Optional[BaseTask]:
+    def get_output_task(self) -> Optional[BaseTask]:
         if self.output_task:
             return self.output_task
         return self.last_task()
@@ -74,8 +70,8 @@ class Pipeline(StructureWithMemory):
 
         if self.memory:
             run = Run(
-                input=self.input_task().input.to_text(),
-                output=self.output_task().output.to_text()
+                input=self.get_input_task().input.to_text(),
+                output=self.get_output_task().output.to_text()
             )
 
             self.memory.add_run(run)
